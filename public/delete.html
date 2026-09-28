@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Records — Delete Record</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <h1>Student Records</h1>
+  <span class="tag">registry — records on file</span>
+</header>
+
+<nav class="tabs">
+  <a href="index.html">View records</a>
+  <a href="add.html">Add record</a>
+</nav>
+
+<main>
+  <div id="page-content"></div>
+</main>
+
+<script src="script.js"></script>
+<script>
+(async () => {
+  const id = qs('id');
+  const record = id ? await getRecordById(id) : null;
+  const content = document.getElementById('page-content');
+
+  if (!record) {
+    content.innerHTML = `
+      <div class="empty-state" style="border:1px solid var(--line); border-radius:3px;">
+        Record not found. It may have already been removed.<br><br>
+        <a href="index.html" class="btn secondary">Back to records</a>
+      </div>`;
+  } else {
+    content.innerHTML = `
+      <h2 class="section-title">Delete record</h2>
+      <p class="section-sub">This can't be undone.</p>
+
+      <div class="record-form" style="max-width:480px;">
+        <div class="field">
+          <label>ID</label>
+          <div class="rec-id">${esc(record.id)}</div>
+        </div>
+        <div class="field">
+          <label>Name</label>
+          <div>${esc(record.name)}</div>
+        </div>
+        <div class="field">
+          <label>Course</label>
+          <div>${esc(record.course)}</div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Status</label>
+          <div><span class="status ${statusClass(record.status)}">${esc(record.status)}</span></div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn brick" id="confirm-delete">Delete record</button>
+          <a href="index.html" class="btn secondary">Cancel</a>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('confirm-delete').addEventListener('click', async function() {
+      await deleteRecord(record.id);
+      sessionStorage.setItem('src_notice', `${record.name} (${record.id}) was removed.`);
+      window.location.href = 'index.html';
+    });
+  }
+})();
+</script>
+</body>
+</html>

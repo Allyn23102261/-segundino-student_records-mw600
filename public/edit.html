@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Records — Edit Record</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <h1>Student Records</h1>
+  <span class="tag">registry — records on file</span>
+</header>
+
+<nav class="tabs">
+  <a href="index.html">View records</a>
+  <a href="add.html">Add record</a>
+</nav>
+
+<main>
+  <div id="page-content"></div>
+</main>
+
+<script src="script.js"></script>
+<script>
+(async () => {
+  const id = qs('id');
+  const record = id ? await getRecordById(id) : null;
+  const content = document.getElementById('page-content');
+
+  if (!record) {
+    content.innerHTML = `
+      <div class="empty-state" style="border:1px solid var(--line); border-radius:3px;">
+        Record not found. It may have already been removed.<br><br>
+        <a href="index.html" class="btn secondary">Back to records</a>
+      </div>`;
+  } else {
+    content.innerHTML = `
+      <h2 class="section-title">Edit record</h2>
+      <p class="section-sub">${esc(record.id)} — editing on-file details.</p>
+
+      <form class="record-form" id="edit-form" novalidate>
+        <div class="field" id="f-name">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" value="${esc(record.name)}">
+          <div class="error-msg">Enter the student's full name.</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field" id="f-course">
+            <label for="course">Course</label>
+            <input type="text" id="course" name="course" value="${esc(record.course)}">
+            <div class="error-msg">Enter the course.</div>
+          </div>
+          <div class="field" id="f-year">
+            <label for="year">Year level</label>
+            <select id="year" name="year">
+              <option ${record.year==='1st Year'?'selected':''}>1st Year</option>
+              <option ${record.year==='2nd Year'?'selected':''}>2nd Year</option>
+              <option ${record.year==='3rd Year'?'selected':''}>3rd Year</option>
+              <option ${record.year==='4th Year'?'selected':''}>4th Year</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" id="f-status">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="Active" ${record.status==='Active'?'selected':''}>Active</option>
+            <option value="Leave" ${record.status==='Leave'?'selected':''}>On leave</option>
+            <option value="Graduated" ${record.status==='Graduated'?'selected':''}>Graduated</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn">Save changes</button>
+          <a href="index.html" class="btn secondary">Cancel</a>
+        </div>
+      </form>
+    `;
+
+    document.getElementById('edit-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      let valid = true;
+
+      const name = document.getElementById('name').value.trim();
+      const course = document.getElementById('course').value.trim();
+      const year = document.getElementById('year').value;
+      const status = document.getElementById('status').value;
+
+      document.getElementById('f-name').classList.toggle('invalid', name.length === 0);
+      document.getElementById('f-course').classList.toggle('invalid', course.length === 0);
+      if (name.length === 0 || course.length === 0) valid = false;
+
+      if (!valid) return;
+
+      await updateRecord(record.id, { name, course, year, status });
+      sessionStorage.setItem('src_notice', `${name} (${record.id}) was updated.`);
+      window.location.href = 'index.html';
+    });
+  }
+})();
+</script>
+</body>
+</html>

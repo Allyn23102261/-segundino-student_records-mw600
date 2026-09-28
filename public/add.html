@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Records — Add Record</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <h1>Student Records</h1>
+  <span class="tag">registry — records on file</span>
+</header>
+
+<nav class="tabs">
+  <a href="index.html">View records</a>
+  <a href="add.html" class="active">Add record</a>
+</nav>
+
+<main>
+  <h2 class="section-title">Add a record</h2>
+  <p class="section-sub">A new ID is assigned automatically once saved.</p>
+
+  <form class="record-form" id="add-form" novalidate>
+    <div class="field" id="f-name">
+      <label for="name">Full name</label>
+      <input type="text" id="name" name="name" placeholder="e.g. Dela Cruz, Juan P.">
+      <div class="error-msg">Enter the student's full name.</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field" id="f-course">
+        <label for="course">Course</label>
+        <input type="text" id="course" name="course" placeholder="e.g. BS Information Technology">
+        <div class="error-msg">Enter the course.</div>
+      </div>
+      <div class="field" id="f-year">
+        <label for="year">Year level</label>
+        <select id="year" name="year">
+          <option value="1st Year">1st Year</option>
+          <option value="2nd Year">2nd Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="4th Year">4th Year</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" id="f-status">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="Active">Active</option>
+        <option value="Leave">On leave</option>
+        <option value="Graduated">Graduated</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn">Save record</button>
+      <a href="index.html" class="btn secondary">Cancel</a>
+    </div>
+  </form>
+</main>
+
+<script src="script.js"></script>
+<script>
+  document.getElementById('add-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    let valid = true;
+
+    const name = document.getElementById('name').value.trim();
+    const course = document.getElementById('course').value.trim();
+    const year = document.getElementById('year').value;
+    const status = document.getElementById('status').value;
+
+    document.getElementById('f-name').classList.toggle('invalid', name.length === 0);
+    document.getElementById('f-course').classList.toggle('invalid', course.length === 0);
+    if (name.length === 0 || course.length === 0) valid = false;
+
+    if (!valid) return;
+
+    const record = await addRecord({ name, course, year, status });
+    sessionStorage.setItem('src_notice', `${record.name} was added as ${record.id}.`);
+    window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>

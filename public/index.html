@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Records — All Records</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <h1>Student Records</h1>
+  <span class="tag">registry — records on file</span>
+</header>
+
+<nav class="tabs">
+  <a href="index.html" class="active">View records</a>
+  <a href="add.html">Add record</a>
+</nav>
+
+<main>
+  <div id="notice-area"></div>
+
+  <div class="toolbar">
+    <div>
+      <h2 class="section-title">All records</h2>
+      <p class="section-sub" style="margin-bottom:0;">Every student currently on file.</p>
+    </div>
+    <a href="add.html" class="btn">Add record</a>
+  </div>
+
+  <span class="count" id="record-count"></span>
+
+  <div class="ledger" id="ledger" style="margin-top:10px;">
+    <div class="ledger-row header">
+      <span>ID</span>
+      <span>Name</span>
+      <span>Course</span>
+      <span>Status</span>
+      <span></span>
+    </div>
+    <div id="ledger-body"></div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+<script>
+  function renderNotice() {
+    const msg = sessionStorage.getItem('src_notice');
+    if (msg) {
+      document.getElementById('notice-area').innerHTML =
+        `<div class="notice">${esc(msg)}</div>`;
+      sessionStorage.removeItem('src_notice');
+    }
+  }
+
+  async function render() {
+    const records = await loadRecords();
+    const body = document.getElementById('ledger-body');
+    document.getElementById('record-count').textContent =
+      records.length + (records.length === 1 ? ' record' : ' records');
+
+    if (records.length === 0) {
+      body.innerHTML = `<div class="empty-state">No records on file yet. <a href="add.html">Add the first one</a>.</div>`;
+      return;
+    }
+
+    body.innerHTML = records.map(r => `
+      <div class="ledger-row">
+        <span class="rec-id">${esc(r.id)}</span>
+        <span class="rec-name">${esc(r.name)}</span>
+        <span class="rec-course">${esc(r.course)}</span>
+        <span><span class="status ${statusClass(r.status)}">${esc(r.status)}</span></span>
+        <span class="row-actions">
+          <a class="icon-btn" href="view.html?id=${encodeURIComponent(r.id)}">View</a>
+          <a class="icon-btn" href="edit.html?id=${encodeURIComponent(r.id)}">Edit</a>
+          <button class="icon-btn danger" data-delete="${esc(r.id)}">Delete</button>
+        </span>
+      </div>
+    `).join('');
+
+    body.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-delete');
+        const rec = await getRecordById(id);
+        if (confirm(`Remove ${rec.name} (${id}) from the records? This can't be undone.`)) {
+          await deleteRecord(id);
+          sessionStorage.setItem('src_notice', `${rec.name} (${id}) was removed.`);
+          await render();
+          renderNotice();
+        }
+      });
+    });
+  }
+
+  renderNotice();
+  render();
+</script>
+</body>
+</html>
